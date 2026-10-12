@@ -23,8 +23,9 @@ omarchy theme install https://github.com/hammwl55-creator/omarchy-sticker-bomarc
 
 ## Wallpapers
 
-- `1-sticker-bomb.png`: a dense, bright sticker bomb with white die-cut edges.
-- `2-sticker-bomb-dark.png`: fewer, bigger stickers on thick dark slabs with neon edges.
+- `1-sticker-bomb-dark.png` (default): big, bold stickers with black keylines and neon
+  edges, crowned by one full-size OMARCHY.
+- `2-sticker-bomb.png`: a dense, bright sticker bomb with white die-cut edges.
 
 Cycle between them with the Omarchy background switcher.
 
@@ -36,8 +37,8 @@ fonts from [Google Fonts](https://fonts.google.com) such as Bangers, Bungee,
 Monoton, Pacifico and Press Start 2P.
 
 ```
-python3 wallpaper-src/generate.py            # backgrounds/1-sticker-bomb.png
-python3 wallpaper-src/generate.py --dark     # backgrounds/2-sticker-bomb-dark.png
+python3 wallpaper-src/generate.py --dark     # backgrounds/1-sticker-bomb-dark.png
+python3 wallpaper-src/generate.py            # backgrounds/2-sticker-bomb.png
 python3 wallpaper-src/generate.py 42 out.png # a different random layout
 ```
 

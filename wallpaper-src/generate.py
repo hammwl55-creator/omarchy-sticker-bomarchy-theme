@@ -2,7 +2,7 @@
 """Sticker-bomb "Omarchy" wallpaper in the Dracula palette.
 
 Usage: generate.py [--dark] [seed] [out.png]
-  --dark  fewer, bigger stickers with thick dark slabs and neon edges
+  --dark  bold stickers with black keylines and neon edges, plus one full-size word
 Requires ImageMagick 7 (`magick`). Fonts live in ./fonts.
 """
 import os
@@ -32,7 +32,7 @@ args = sys.argv[1:]
 DARK_MODE = "--dark" in args
 args = [a for a in args if a != "--dark"]
 seed = int(args[0]) if args else 1897  # year Dracula was published
-default_out = "2-sticker-bomb-dark.png" if DARK_MODE else "1-sticker-bomb.png"
+default_out = "1-sticker-bomb-dark.png" if DARK_MODE else "2-sticker-bomb.png"
 out = Path(args[1]) if len(args) > 1 else HERE.parent / "backgrounds" / default_out
 # Dark variant: rings drawn this much thicker, and sticker size ranges for the
 # base layer and the gap fill.
