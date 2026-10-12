@@ -36,8 +36,14 @@ default_out = "2-sticker-bomb-dark.png" if DARK_MODE else "1-sticker-bomb.png"
 out = Path(args[1]) if len(args) > 1 else HERE.parent / "backgrounds" / default_out
 # Dark variant: rings drawn this much thicker, and sticker size ranges for the
 # base layer and the gap fill.
-THICK = 1.7 if DARK_MODE else 1.0
-BASE_W, FILL_W = ((1100, 2100), (800, 1300)) if DARK_MODE else ((480, 1250), (420, 850))
+THICK = 1.0
+BASE_W, FILL_W = ((1000, 1900), (650, 1100)) if DARK_MODE else ((480, 1250), (420, 850))
+# Hairline, inline and distressed faces read as hollow on dark slabs, so the
+# dark variant sticks to solid, heavy fonts.
+THIN_FONTS = {"BungeeShade", "Creepster", "FasterOne", "Frijole", "Monoton",
+              "Nosifer", "RubikGlitch", "UnifrakturMaguntia", "VT323"}
+if DARK_MODE:
+    FONTS = [f for f in FONTS if f.stem.split("-")[0] not in THIN_FONTS]
 rng = random.Random(seed)
 # One ImageMagick thread per process; parallelism comes from rendering stickers concurrently.
 ENV = {**os.environ, "MAGICK_THREAD_LIMIT": "1"}
@@ -57,11 +63,11 @@ def style():
     c, c2 = rng.sample(COLORS, 2)
     if DARK_MODE:
         return rng.choice([
-            (c, None, [(22, DARK), (8, c)]),             # neon text on a black slab
-            (c, None, [(24, BG), (6, DARK), (6, c2)]),   # neon text, two-tone edge
-            (DARK, c, [(22, BG), (8, c)]),               # outlined black letters
-            (WHITE, None, [(22, SELECTION), (8, DARK), (6, c)]),  # light text on grey slab
-            (c, DARK, [(20, DARK), (10, SELECTION)]),    # neon with grey keyline
+            (c, None, [(7, DARK), (6, c)]),              # neon text, black keyline, neon edge
+            (c, None, [(6, DARK), (4, SELECTION), (5, c2)]),  # neon text, two-tone edge
+            (WHITE, None, [(7, DARK), (6, c)]),          # light text, neon edge
+            (c, DARK, [(8, SELECTION), (5, DARK)]),      # outlined neon on grey
+            (DARK, c, [(8, c), (4, DARK)]),              # black letters on a neon die-cut
         ])
     return rng.choice([
         (c, None, [(14, WHITE)]),                    # classic die-cut
@@ -74,12 +80,12 @@ def style():
     ])
 
 
-def sticker_spec(width, cx, cy):
+def sticker_spec(width, cx, cy, angle=None):
     """Draw every random choice up front so parallel rendering stays reproducible."""
     font = rng.choice(FONTS)
     fill, stroke, rings = style()
     return dict(font=font, width=width, fill=fill, stroke=stroke, rings=rings,
-                angle=rng.uniform(-28, 28), cx=cx, cy=cy)
+                angle=rng.uniform(-28, 28) if angle is None else angle, cx=cx, cy=cy)
 
 
 def render(spec, path):
@@ -120,7 +126,11 @@ def paint(canvas, specs, tmp, tag):
 def bare_cells(canvas):
     """Cells sorted barest-first, as (bareness, x, y) pixel centers."""
     cols, rows = W // CELL, H // CELL
-    data = magick(canvas, "-colorspace", "gray", "-threshold", LUMA, "-negate",
+    # Dark stickers are as dark as the background, so there a cell is bare when
+    # it is the background color itself; otherwise it is bare when it is dark.
+    find = (["-fuzz", "4%", "-fill", "white", "-opaque", BG, "-fill", "black", "+opaque", "white"]
+            if DARK_MODE else ["-colorspace", "gray", "-threshold", LUMA, "-negate"])
+    data = magick(canvas, *find, "-colorspace", "gray",
                   "-scale", f"{cols}x{rows}!", "-depth", "8", "gray:-", raw=True)
     cells = [(v / 255, (i % cols) * CELL + CELL // 2, (i // cols) * CELL + CELL // 2)
              for i, v in enumerate(data) if v / 255 > BARE]
@@ -132,7 +142,7 @@ widths = {f: text_width(f) for f in FONTS}
 # Jittered, staggered grid so the whole canvas gets covered, then a random
 # scatter on top for the layered sticker-bomb look.
 centers = []
-row_h, col_w = (360, 1150) if DARK_MODE else (215, 640)
+row_h, col_w = (300, 1000) if DARK_MODE else (215, 640)
 for r, y in enumerate(range(-60, H + 120, row_h)):
     for x in range(-200 + (r % 2) * col_w // 2, W + 300, col_w):
         centers.append((x + rng.randint(-160, 160), y + rng.randint(-80, 80)))
@@ -146,9 +156,7 @@ with tempfile.TemporaryDirectory() as tmp:
     total = len(centers)
 
     # Patch whatever is still bare with smaller stickers centered on the gaps.
-    # (The dark variant skips this: its slabs are as dark as the background,
-    # so the luminance test can't tell a gap from a sticker.)
-    for n in range(0 if DARK_MODE else FILL_PASSES):
+    for n in range(FILL_PASSES):
         picks = []
         for _, x, y in bare_cells(canvas):
             if all(abs(x - px) > 320 or abs(y - py) > 140 for px, py in picks):
@@ -159,6 +167,13 @@ with tempfile.TemporaryDirectory() as tmp:
         paint(canvas, [sticker_spec(rng.randint(*FILL_W), x + rng.randint(-40, 40), y + rng.randint(-20, 20))
                        for x, y in picks], tmp, f"fill{n}")
         total += len(picks)
+
+    # Dark variant: one big, nearly level sticker on top, so the whole word shows.
+    if DARK_MODE:
+        hero = sticker_spec(1700, W // 2 + rng.randint(-500, 500), H // 2 + rng.randint(-250, 250),
+                            angle=rng.uniform(-8, 8))
+        paint(canvas, [hero], tmp, "hero")
+        total += 1
 
     out.parent.mkdir(parents=True, exist_ok=True)
     magick(canvas, out)
