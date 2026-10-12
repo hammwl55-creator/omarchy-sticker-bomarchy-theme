@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Sticker-bomb "Omarchy" wallpaper in the Dracula palette.
 
-Usage: generate.py [--dark] [seed] [out.png]
-  --dark  bold stickers with black keylines and neon edges, plus one full-size word
+Usage: generate.py [hero|quiet|solo|bright] [seed] [out.png]
+  hero    (default) bold stickers with black keylines and neon edges, plus one full-size word
+  quiet   the same stickers, far fewer of them, with the background showing between
+  solo    the plain Dracula background with one large sticker in the middle
+  bright  the original dense sticker bomb with white die-cut edges
 Requires ImageMagick 7 (`magick`). Fonts live in ./fonts.
 """
 import os
@@ -28,11 +31,13 @@ COLORS = ["#bd93f9", "#50fa7b", "#ff79c6", "#f1fa8c", "#ff5555", "#8be9fd"]
 # when more than BARE of it is darker than LUMA (background or shadow).
 CELL, LUMA, BARE, FILL_PASSES = 60, "20%", 0.45, 6
 
+VARIANTS = {"hero": "1-sticker-bomb.png", "quiet": "2-sticker-bomb-quiet.png",
+            "solo": "3-sticker-solo.png", "bright": "sticker-bomb-bright.png"}
 args = sys.argv[1:]
-DARK_MODE = "--dark" in args
-args = [a for a in args if a != "--dark"]
+VARIANT = args.pop(0) if args and args[0] in VARIANTS else "hero"
+DARK_MODE = VARIANT != "bright"
 seed = int(args[0]) if args else 1897  # year Dracula was published
-default_out = "1-sticker-bomb-dark.png" if DARK_MODE else "2-sticker-bomb.png"
+default_out = VARIANTS[VARIANT]
 out = Path(args[1]) if len(args) > 1 else HERE.parent / "backgrounds" / default_out
 # Dark variant: rings drawn this much thicker, and sticker size ranges for the
 # base layer and the gap fill.
@@ -152,6 +157,27 @@ centers += [(rng.randint(0, W), rng.randint(0, H)) for _ in range(len(centers) /
 with tempfile.TemporaryDirectory() as tmp:
     canvas = Path(tmp) / "canvas.png"
     magick("-size", f"{W}x{H}", f"xc:{BG}", canvas)
+
+    if VARIANT == "solo":
+        paint(canvas, [sticker_spec(2300, W // 2, H // 2, angle=-6)], tmp, "solo")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        magick(canvas, out)
+        sys.exit(print(f"1 sticker → {out}"))
+
+    if VARIANT == "quiet":
+        # A loose scatter: a wide jittered grid with about 30% of the spots
+        # left empty, no gap filling, and the full-size word on top.
+        spots = [(x + rng.randint(-180, 180), y + rng.randint(-90, 90))
+                 for r, y in enumerate(range(80, H + 100, 400))
+                 for x in range(150 + (r % 2) * 500, W + 200, 1000)]
+        spots = [s for s in spots if rng.random() < 0.7]
+        paint(canvas, [sticker_spec(rng.randint(800, 1300), x, y) for x, y in spots], tmp, "quiet")
+        hero = sticker_spec(1900, W // 2, H // 2, angle=rng.uniform(-6, 6))
+        paint(canvas, [hero], tmp, "hero")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        magick(canvas, out)
+        sys.exit(print(f"{len(spots) + 1} stickers → {out}"))
+
     paint(canvas, [sticker_spec(rng.randint(*BASE_W), x, y) for x, y in centers], tmp, "base")
     total = len(centers)
 

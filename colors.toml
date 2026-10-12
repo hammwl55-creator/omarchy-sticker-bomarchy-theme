@@ -3,6 +3,10 @@ mode = "dark"
 # Dracula palette: https://draculatheme.com/spec
 accent = "#bd93f9"
 selection = "#44475a"
+# Terminal text highlight: Dracula's #44475a vanishes against the background
+# (and the busy wallpaper behind a translucent terminal), so use purple.
+selection_background = "#bd93f9"
+selection_foreground = "#282a36"
 muted = "#6272a4"
 
 background = "#282a36"

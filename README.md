@@ -23,9 +23,12 @@ omarchy theme install https://github.com/hammwl55-creator/omarchy-sticker-bomarc
 
 ## Wallpapers
 
-- `1-sticker-bomb-dark.png` (default): big, bold stickers with black keylines and neon
+- `1-sticker-bomb.png` (default): big, bold stickers with black keylines and neon
   edges, crowned by one full-size OMARCHY.
-- `2-sticker-bomb.png`: a dense, bright sticker bomb with white die-cut edges.
+- `2-sticker-bomb-quiet.png`: the same stickers, far fewer, with the background
+  showing through.
+- `3-sticker-solo.png`: the plain Dracula background with one large sticker in
+  the middle, for a subdued look.
 
 Cycle between them with the Omarchy background switcher.
 
@@ -37,9 +40,11 @@ fonts from [Google Fonts](https://fonts.google.com) such as Bangers, Bungee,
 Monoton, Pacifico and Press Start 2P.
 
 ```
-python3 wallpaper-src/generate.py --dark     # backgrounds/1-sticker-bomb-dark.png
-python3 wallpaper-src/generate.py            # backgrounds/2-sticker-bomb.png
-python3 wallpaper-src/generate.py 42 out.png # a different random layout
+python3 wallpaper-src/generate.py            # backgrounds/1-sticker-bomb.png
+python3 wallpaper-src/generate.py quiet      # backgrounds/2-sticker-bomb-quiet.png
+python3 wallpaper-src/generate.py solo       # backgrounds/3-sticker-solo.png
+python3 wallpaper-src/generate.py bright     # the original dense, bright sticker bomb
+python3 wallpaper-src/generate.py hero 42 out.png  # a different random layout
 ```
 
 ## Credits
