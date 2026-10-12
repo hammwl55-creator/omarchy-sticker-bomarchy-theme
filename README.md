@@ -25,8 +25,8 @@ omarchy theme install https://github.com/hammwl55-creator/omarchy-sticker-bomarc
 
 - `1-sticker-bomb.png` (default): big, bold stickers with black keylines and neon
   edges, crowned by one full-size OMARCHY.
-- `2-sticker-solo.png`: the plain Dracula background with one large green pixel
-  sticker in the middle, for a subdued look.
+- `2-sticker-solo.png`: the plain Dracula background with one big green pixel
+  sticker edged in pink, level and centered, for a subdued look.
 
 Cycle between them with the Omarchy background switcher.
 

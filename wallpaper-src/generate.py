@@ -4,7 +4,7 @@
 Usage: generate.py [hero|quiet|solo|bright] [seed] [out.png]
   hero    (default) bold stickers with black keylines and neon edges, plus one full-size word
   quiet   the same stickers, far fewer of them, with the background showing between
-  solo    the plain Dracula background with the green pixel sticker in the middle
+  solo    the plain Dracula background with a big, level green pixel sticker edged in pink
   bright  the original dense sticker bomb with white die-cut edges
 Requires ImageMagick 7 (`magick`). Fonts live in ./fonts.
 """
@@ -159,11 +159,12 @@ with tempfile.TemporaryDirectory() as tmp:
     magick("-size", f"{W}x{H}", f"xc:{BG}", canvas)
 
     if VARIANT == "solo":
-        # The green pixel-font sticker from the hero wallpaper, on its own.
+        # The green pixel-font sticker from the hero wallpaper with a pink edge,
+        # level and centered like Omarchy's own plain logo wallpapers.
         font = next(f for f in FONTS if f.stem.startswith("PressStart2P"))
-        green = "#50fa7b"
-        paint(canvas, [dict(font=font, width=2300, fill=green, stroke=None,
-                            rings=[(7, DARK), (6, green)], angle=-6, cx=W // 2, cy=H // 2)], tmp, "solo")
+        green, pink = "#50fa7b", "#ff79c6"
+        paint(canvas, [dict(font=font, width=2900, fill=green, stroke=None,
+                            rings=[(6, DARK), (6, pink)], angle=0, cx=W // 2, cy=H // 2)], tmp, "solo")
         out.parent.mkdir(parents=True, exist_ok=True)
         magick(canvas, out)
         sys.exit(print(f"1 sticker → {out}"))
