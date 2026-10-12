@@ -4,7 +4,7 @@
 Usage: generate.py [hero|quiet|solo|bright] [seed] [out.png]
   hero    (default) bold stickers with black keylines and neon edges, plus one full-size word
   quiet   the same stickers, far fewer of them, with the background showing between
-  solo    the plain Dracula background with one large sticker in the middle
+  solo    the plain Dracula background with the green pixel sticker in the middle
   bright  the original dense sticker bomb with white die-cut edges
 Requires ImageMagick 7 (`magick`). Fonts live in ./fonts.
 """
@@ -31,8 +31,8 @@ COLORS = ["#bd93f9", "#50fa7b", "#ff79c6", "#f1fa8c", "#ff5555", "#8be9fd"]
 # when more than BARE of it is darker than LUMA (background or shadow).
 CELL, LUMA, BARE, FILL_PASSES = 60, "20%", 0.45, 6
 
-VARIANTS = {"hero": "1-sticker-bomb.png", "quiet": "2-sticker-bomb-quiet.png",
-            "solo": "3-sticker-solo.png", "bright": "sticker-bomb-bright.png"}
+VARIANTS = {"hero": "1-sticker-bomb.png", "quiet": "sticker-bomb-quiet.png",
+            "solo": "2-sticker-solo.png", "bright": "sticker-bomb-bright.png"}
 args = sys.argv[1:]
 VARIANT = args.pop(0) if args and args[0] in VARIANTS else "hero"
 DARK_MODE = VARIANT != "bright"
@@ -159,7 +159,11 @@ with tempfile.TemporaryDirectory() as tmp:
     magick("-size", f"{W}x{H}", f"xc:{BG}", canvas)
 
     if VARIANT == "solo":
-        paint(canvas, [sticker_spec(2300, W // 2, H // 2, angle=-6)], tmp, "solo")
+        # The green pixel-font sticker from the hero wallpaper, on its own.
+        font = next(f for f in FONTS if f.stem.startswith("PressStart2P"))
+        green = "#50fa7b"
+        paint(canvas, [dict(font=font, width=2300, fill=green, stroke=None,
+                            rings=[(7, DARK), (6, green)], angle=-6, cx=W // 2, cy=H // 2)], tmp, "solo")
         out.parent.mkdir(parents=True, exist_ok=True)
         magick(canvas, out)
         sys.exit(print(f"1 sticker → {out}"))
